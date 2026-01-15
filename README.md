@@ -1,0 +1,1 @@
+# elementosPromptCapsula2
