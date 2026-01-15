@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cómo armar un buen prompt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dosis:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Dosis', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 50%, #fce7f3 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.25rem;
+            color: #4b5563;
+        }
+
+        .steps-container {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            align-items: stretch;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 80px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, #a855f7, #3b82f6, #10b981, #f97316);
+            z-index: 0;
+        }
+
+        .step {
+            flex: 1;
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .step:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .step.active {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+
+        .step:nth-child(1) .step-number { background: #a855f7; }
+        .step:nth-child(2) .step-number { background: #3b82f6; }
+        .step:nth-child(3) .step-number { background: #10b981; }
+        .step:nth-child(4) .step-number { background: #f97316; }
+
+        .step-icon {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .step-icon svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .step:nth-child(1) .step-icon svg { stroke: #a855f7; }
+        .step:nth-child(2) .step-icon svg { stroke: #3b82f6; }
+        .step:nth-child(3) .step-icon svg { stroke: #10b981; }
+        .step:nth-child(4) .step-icon svg { stroke: #f97316; }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .step-description {
+            font-size: 1rem;
+            color: #4b5563;
+            line-height: 1.6;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .step-expand {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .detail-panel {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 3rem;
+            display: none;
+        }
+
+        .detail-panel.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid;
+        }
+
+        .detail-panel[data-step="1"] .detail-header { border-color: #a855f7; }
+        .detail-panel[data-step="2"] .detail-header { border-color: #3b82f6; }
+        .detail-panel[data-step="3"] .detail-header { border-color: #10b981; }
+        .detail-panel[data-step="4"] .detail-header { border-color: #f97316; }
+
+        .detail-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .detail-panel[data-step="1"] .detail-icon { background: #a855f7; }
+        .detail-panel[data-step="2"] .detail-icon { background: #3b82f6; }
+        .detail-panel[data-step="3"] .detail-icon { background: #10b981; }
+        .detail-panel[data-step="4"] .detail-icon { background: #f97316; }
+
+        .detail-icon svg {
+            width: 36px;
+            height: 36px;
+        }
+
+        .detail-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .detail-content {
+            font-size: 1.125rem;
+            color: #374151;
+            line-height: 1.75;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-yellow {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            color: #374151;
+        }
+
+        .alert-blue {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #374151;
+        }
+
+        .alert-red {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #374151;
+        }
+
+        .alert-green {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #374151;
+        }
+
+        .example-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .example-basic {
+            background: #f9fafb;
+        }
+
+        .example-advanced {
+            background: linear-gradient(to right, #faf5ff, #fce7f3);
+            border: 2px solid #e9d5ff;
+        }
+
+        .example-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .label-gray { color: #6b7280; }
+        .label-purple { color: #9333ea; }
+        .label-red { color: #dc2626; }
+        .label-green { color: #059669; }
+
+        .bonus {
+            background: linear-gradient(to right, #9333ea, #ec4899);
+            border-radius: 1rem;
+            padding: 2rem;
+            color: white;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            margin-bottom: 3rem;
+        }
+
+        .bonus-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bonus-header h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+        }
+
+        .bonus-intro {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+
+        .bonus-list {
+            list-style: none;
+        }
+
+        .bonus-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .final-message {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .final-message p {
+            font-size: 1.25rem;
+            color: #374151;
+            line-height: 1.75;
+        }
+
+        @media (max-width: 1024px) {
+            .steps-container {
+                flex-wrap: wrap;
+            }
+
+            .steps-container::before {
+                display: none;
+            }
+
+            .step {
+                flex: 0 0 calc(50% - 1rem);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .header p {
+                font-size: 1rem;
+            }
+
+            .steps-container {
+                flex-direction: column;
+            }
+
+            .step {
+                flex: 1 1 100%;
+            }
+
+            .bonus {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Cómo armar un buen prompt</h1>
+            <p>Cuatro pasos esenciales para comunicarte efectivamente con la IA</p>
+        </div>
+
+        <!-- Steps -->
+        <div class="steps-container">
+            <!-- Step 1 -->
+            <div class="step" onclick="showDetail(1)">
+                <div class="step-number">1</div>
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                </div>
+                <h2 class="step-title">Instrucción</h2>
+                <p class="step-description">Lo que querés que el modelo haga. Desarmalo en pasos para mayor precisión.</p>
+                <p class="step-expand">👆 Clic para ver más</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step" onclick="showDetail(2)">
+                <div class="step-number">2</div>
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="step-title">Contexto</h2>
+                <p class="step-description">Información clave que ayuda al modelo a entender mejor tu pedido.</p>
+                <p class="step-expand">👆 Clic para ver más</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step" onclick="showDetail(3)">
+                <div class="step-number">3</div>
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                </div>
+                <h2 class="step-title">Datos adjuntos</h2>
+                <p class="step-description">Archivos o ejemplos que agregás para dar más información.</p>
+                <p class="step-expand">👆 Clic para ver más</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step" onclick="showDetail(4)">
+                <div class="step-number">4</div>
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </div>
+                <h2 class="step-title">Indicador de output</h2>
+                <p class="step-description">Cómo querés recibir la respuesta: lista, PDF, con emojis...</p>
+                <p class="step-expand">👆 Clic para ver más</p>
+            </div>
+        </div>
+
+        <!-- Detail Panel 1: Instrucción -->
+        <div class="detail-panel" id="detail-1" data-step="1">
+            <div class="detail-header">
+                <div class="detail-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                </div>
+                <h2 class="detail-title">Paso 1: Instrucción</h2>
+            </div>
+            <p class="detail-content">Lo que querés que el modelo haga. Podés desarmarlo en pasos para mayor precisión.</p>
+            
+            <div class="example-box example-basic">
+                <p class="example-label label-gray">Versión básica:</p>
+                <p>Dame una receta para cocinar buñuelos</p>
+            </div>
+            
+            <div class="example-box example-advanced">
+                <p class="example-label label-purple">Versión mejorada:</p>
+                <p>Quiero una receta para cocinar buñuelos. Para eso: 1) Buscá en internet las recetas más utilizadas, 2) Hacé una síntesis de los pasos que se repiten, 3) Agregá tips que hayas encontrado para que pueda elegir cuáles utilizar.</p>
+            </div>
+        </div>
+
+        <!-- Detail Panel 2: Contexto -->
+        <div class="detail-panel" id="detail-2" data-step="2">
+            <div class="detail-header">
+                <div class="detail-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="detail-title">Paso 2: Contexto</h2>
+            </div>
+            <p class="detail-content">Información clave que ayuda al modelo a entender mejor tu pedido. Anticipá qué datos pueden ser útiles, aunque te parezcan obvios.</p>
+            
+            <div class="alert alert-yellow">
+                <p><strong>💡 Importante:</strong> ¿Qué puede fallar si no doy contexto? El modelo puede asumir información incorrecta basándose en lo más común.</p>
+            </div>
+            
+            <div class="alert alert-red">
+                <p class="example-label label-red">⚠️ Problema:</p>
+                <p>En muchos países de LATAM los buñuelos son dulces.</p>
+            </div>
+            
+            <div class="alert alert-green">
+                <p class="example-label label-green">✓ Solución:</p>
+                <p>Aclará: "Los buñuelos que quiero cocinar son de acelga" o "No como lácteos" o "Solo quiero usar ingredientes que tengo en casa".</p>
+            </div>
+        </div>
+
+        <!-- Detail Panel 3: Datos adjuntos -->
+        <div class="detail-panel" id="detail-3" data-step="3">
+            <div class="detail-header">
+                <div class="detail-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                    </svg>
+                </div>
+                <h2 class="detail-title">Paso 3: Datos adjuntos</h2>
+            </div>
+            <p class="detail-content">Archivos o ejemplos que agregás para dar más información: una imagen de referencia, una planilla de Excel, un documento.</p>
+            
+            <div class="alert alert-yellow">
+                <p><strong>💡 Importante:</strong> No todos los modelos aceptan los mismos formatos. Verificá qué puede procesar el modelo que estás usando.</p>
+            </div>
+            
+            <div class="alert alert-blue">
+                <p><strong>🔄 Alternativa:</strong> Si el modelo no acepta tu archivo, intentá: pegarlo directamente en el prompt o describirlo detalladamente.</p>
+            </div>
+        </div>
+
+        <!-- Detail Panel 4: Indicador de output -->
+        <div class="detail-panel" id="detail-4" data-step="4">
+            <div class="detail-header">
+                <div class="detail-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                        <path d="M5 3v4"></path>
+                        <path d="M19 17v4"></path>
+                        <path d="M3 5h4"></path>
+                        <path d="M17 19h4"></path>
+                    </svg>
+                </div>
+                <h2 class="detail-title">Paso 4: Indicador de output</h2>
+            </div>
+            <p class="detail-content">Cómo querés recibir la respuesta: ¿en forma de lista? ¿en un PDF? ¿con un paso a paso ilustrado con emojis?</p>
+            
+            <div class="example-box" style="background: #fff7ed; border: 2px solid #fed7aa;">
+                <p style="font-style: italic; color: #374151;">Quiero que la receta imite el formato de esta que te dejo de ejemplo: [enlace]</p>
+            </div>
+        </div>
+
+        <!-- Bonus Track -->
+        <div class="bonus">
+            <div class="bonus-header">
+                <svg class="pulse" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path>
+                    <path d="M9 18h6"></path>
+                    <path d="M10 22h4"></path>
+                </svg>
+                <h2>Bonus Track</h2>
+            </div>
+            <p class="bonus-intro">Extras para llevar tus prompts al siguiente nivel:</p>
+            <ul class="bonus-list">
+                <li>
+                    <span style="font-size: 1.5rem;">✨</span>
+                    <span>Ajustá el tono de la respuesta (amigable, gracioso, seco, preciso)</span>
+                </li>
+                <li>
+                    <span style="font-size: 1.5rem;">✨</span>
+                    <span>Pedile que responda poniéndose en un rol específico (sos una especialista en recetas veganas)</span>
+                </li>
+                <li>
+                    <span style="font-size: 1.5rem;">✨</span>
+                    <span>Utilizá mayúsculas y símbolos como corchetes [ ] para diferenciar secciones del prompt</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Final Message -->
+        <div class="final-message">
+            <p><strong>Recordá:</strong> A medida que ganás experiencia, te volvés mejor detectando qué información es clave. No necesitás tener un prompt perfecto desde el inicio—podés ir ajustando a lo largo de la conversación.</p>
+        </div>
+    </div>
+
+    <script>
+        let currentDetail = null;
+
+        function showDetail(stepNumber) {
+            // Ocultar todos los paneles
+            const allPanels = document.querySelectorAll('.detail-panel');
+            const allSteps = document.querySelectorAll('.step');
+            
+            allPanels.forEach(panel => panel.classList.remove('active'));
+            allSteps.forEach(step => step.classList.remove('active'));
+            
+            // Si hacemos clic en el mismo paso, solo cerrar
+            if (currentDetail === stepNumber) {
+                currentDetail = null;
+                return;
+            }
+            
+            // Mostrar el panel seleccionado
+            const panel = document.getElementById('detail-' + stepNumber);
+            const step = document.querySelectorAll('.step')[stepNumber - 1];
+            
+            panel.classList.add('active');
+            step.classList.add('active');
+            currentDetail = stepNumber;
+            
+            // Scroll suave al panel
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+    </script>
+</body>
+</html>
